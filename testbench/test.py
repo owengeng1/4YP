@@ -9,5 +9,7 @@ from math_operations import *
 
 random.seed(43)
 
-world = World(100)
+world = World(3)
 line1 = world.generate(1)
+
+world.generate_angle(line1, 30)

@@ -26,7 +26,7 @@ class World:
         if sizearr is None:
             self.dim = dim
             self.sizearr = np.array([-100, 100])
-            #print("No size array provided, setting to default.") #Default will be from -1000 to 1000 in every direction. Might need to change this to save memory at some point.
+            #print("No size array provided, setting to default.") #Default will be from -100 to 100 in every direction. Might need to change this to save memory at some point.
             for i in range (dim-1):
                 self.sizearr = np.vstack((self.sizearr, [-100, 100]))
             
@@ -80,7 +80,15 @@ class World:
     
     def generate_angle(self, ref_line, angle, start = None): #Generate a vector that is a certain angle from a predefined line. Currently only works for 1D.
         assert isinstance(ref_line, Vector), "generate_angle ref_line must be of class Vector"
-        print(ref_line.dim)
+        assert ref_line.dim == 1, "generate_angle currently only implemented for 1D case"
+        #Generate a random point
+        dir1 = np.zeros(self.dim)
+        for ind in range(self.dim):
+            dir1[ind] = random.uniform(self.sizearr[ind][0], self.sizearr[ind][1])
+        print(dir1)
+
+        #Find point's projection in hyperplane orthogonal to ref_line
+
         
 
     def calc_l2(self, p1, p2):
