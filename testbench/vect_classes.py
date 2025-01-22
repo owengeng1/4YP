@@ -85,10 +85,29 @@ class World:
         dir1 = np.zeros(self.dim)
         for ind in range(self.dim):
             dir1[ind] = random.uniform(self.sizearr[ind][0], self.sizearr[ind][1])
-        print(dir1)
-
+        rand_point = np.array(dir1)
+        init_dir = ref_line.dirarr[1]
         #Find point's projection in hyperplane orthogonal to ref_line
+        #OA . OC = |OA| |OC| cos(theta), proj(C) = OC - OB where OB = magnitude of OC in direction OA, i.e, |OC| cos(theta) or OA.OC/|OA|
+        dot = np.dot(init_dir, rand_point)
+        dot = dot/(calculate_magnitude(init_dir))
+        proj = np.add(-dot*(init_dir), rand_point)
+        proj = proj/calculate_magnitude(proj)
+        
+        #Using projected point to generate a new line at a predefined angle to init_dir
+        final_dir = np.cos(angle)*init_dir + np.sin(angle)*proj
+        final_dir = final_dir/(calculate_magnitude(final_dir))
 
+        #Create new Vector object with a random starting point/predefined starting point.
+        #Generate a random point
+        if start == None:
+            start = np.zeros(self.dim)
+            for ind in range(self.dim):
+                start[ind] = random.uniform(self.sizearr[ind][0], self.sizearr[ind][1])
+        else:
+            assert isinstance(start, np.ndarray), "Starting point must be an np array"
+        
+        return Vector(1, np.vstack((start, final_dir)))
         
 
     def calc_l2(self, p1, p2):
@@ -232,6 +251,9 @@ class World:
         K1 = np.array([find_2d_vals(a, b)])
         K2 = np.array([self.calculate_orthogonal(vect1.calculate_point(K1), vect2)])
         return K1, K2
+    
+
+
 class Vector:
     def __init__(self, dim, dirarr): #All vectors will be in the form (x, y, z) = (x0, y0, z0) + k1(a1, b1, c1) + k2(a2, b2, c2) ... i.e, inital point + direction.
         assert np.shape(dirarr)[0] == dim + 1, f"Direction array doesn't match assigned dimension. dim = {dim}, dirarr has {np.shape[dirarr][0]} rows, should have {dim + 1} rows.."
