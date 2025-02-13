@@ -44,3 +44,11 @@ def solve_quadratic_2(l1, l2):
 
 def find_2d_vals(a, b):
     return (-b/(2*a))
+
+
+def calc_orthog_basis(arr1, arr2): #Finds the projection of vector arr1 onto vector arr2
+    assert isinstance(arr1, np.ndarray), "arr1 must be a numpy array in calc_1d_projections"
+    assert isinstance(arr2, np.ndarray), "arr2 must be a numpy array in calc_1d_projections"
+    arr2mag = calculate_magnitude(arr2)
+    scalar = np.dot(arr1, arr2)/(arr2mag*arr2mag)
+    return np.subtract(arr1, np.multiply(scalar, arr2))

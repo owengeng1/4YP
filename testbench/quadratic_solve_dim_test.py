@@ -12,7 +12,7 @@ world = World(3)
 results1 = []
 dim_arr = []
 
-for dim in range(3, 100000, 100):
+for dim in range(3, 10000, 100):
     line1 = world.generate(1)
     line2 = world.generate(1)
     

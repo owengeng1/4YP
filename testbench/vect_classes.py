@@ -252,6 +252,25 @@ class World:
         K2 = np.array([self.calculate_orthogonal(vect1.calculate_point(K1), vect2)])
         return K1, K2
     
+    def gram_schmidt(self, vect):
+        assert isinstance(vect, Vector), "gram_schmidt must take a Vector class object."
+        
+        dim, dimspace = np.shape(vect.dirarr)
+        if dim <= 2:
+            print("0 or 1D k-plane, already orthogonalised basis.")
+            return vect
+        
+        final_dirarr = np.array([])
+        for current_col in range (2, np.shape(vect.dirarr)[0]):
+
+            proj_total = vect.dirarr[current_col]
+            for all_prev_cols in range(1, current_col):
+                proj_total = calc_orthog_basis(proj_total, vect.dirarr[all_prev_cols])
+            vect.dirarr[current_col] = normalise(proj_total)
+            
+        return vect
+
+
 
 
 class Vector:
