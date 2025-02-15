@@ -8,11 +8,17 @@ from math_operations import *
 
 random.seed(43)
 
-world = World(100)
-vect = world.generate(50)
+#Ensure both versions still represent the same plane
 
-vect.print_vector()
+world = World(3)
+vect1 = world.generate(2)
 
-vect = world.gram_schmidt(vect)
+line1 = world.generate(1)
 
-vect.print_vector()
+print(vect1.calculate_point(world.orthogonal_descent(vect1, line1)[0]))
+
+vect1 = world.gram_schmidt(vect1)
+
+print(vect1.calculate_point(world.orthogonal_descent(vect1, line1)[0]))
+
+

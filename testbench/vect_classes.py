@@ -255,20 +255,34 @@ class World:
     def gram_schmidt(self, vect):
         assert isinstance(vect, Vector), "gram_schmidt must take a Vector class object."
         
-        dim, dimspace = np.shape(vect.dirarr)
+        dim = np.shape(vect.dirarr)[0]
         if dim <= 2:
             print("0 or 1D k-plane, already orthogonalised basis.")
             return vect
-        
-        final_dirarr = np.array([])
-        for current_col in range (2, np.shape(vect.dirarr)[0]):
+
+        for current_col in range (2, dim):
 
             proj_total = vect.dirarr[current_col]
             for all_prev_cols in range(1, current_col):
                 proj_total = calc_orthog_basis(proj_total, vect.dirarr[all_prev_cols])
             vect.dirarr[current_col] = normalise(proj_total)
-            
+
         return vect
+    
+    def sum_linear_projections(self, pt, vect): #Must take a NORMALISED orthogonal basis or near-orthogonal, i.e, pushed through gram_schmidt already. Returns kvals
+        assert isinstance(vect, Vector), "sum_linear_projections must take a Vector object"
+        assert isinstance(pt, np.ndarray), "sum_linear_projections must take a numpy array"
+
+        shift_pt = np.subtract(pt, vect.dirarr[0])
+        #proj_tot = np.zeros(self.dim)
+        kvals = []
+        for col in range(1, np.shape(vect.dirarr)[0]):
+            kval = np.dot(shift_pt, vect.dirarr[col])
+            #proj_tot = np.add(proj_tot, np.multiply(kval, vect.dirarr[col]))
+            kvals.append(kval)
+        
+        return np.array(kvals)
+
 
 
 
