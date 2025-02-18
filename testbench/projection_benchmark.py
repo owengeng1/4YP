@@ -15,8 +15,8 @@ from math_operations import *
 n = 5000
 world = World(n)
 
-repeats = 5
-highest_dim = 1500
+repeats = 20
+highest_dim = 2000
 stepsize = 50
 
 results_method1 = []
@@ -50,7 +50,10 @@ for dim in range(2, highest_dim, stepsize):
     results_gs.append(gram_schmidt_tot/repeats)
     results_method1.append(method1_tot/repeats)
     results_method2.append(lin_proj_tot/repeats)
-    results_diff.append((gram_schmidt_tot/repeats) - (method1_tot/repeats))
+    if method1_tot != 0:
+        results_diff.append((gram_schmidt_tot/repeats)/(method1_tot/repeats))
+    else:
+        results_diff.append(1)
     k_size.append(dim)
     print(f"Current loop: {dim}")
 
@@ -62,14 +65,26 @@ plt.plot(k_size, results_gs, label="Gram_Schmidt")
 
 plt.plot(k_size, results_method2, label="Linear Projections")
 
+plt.xlabel('Dimensionality k', fontsize = 10)
+
+plt.ylabel('Time (seconds)', fontsize = 10)
+
 plt.legend(loc="upper left")
+
+plt.savefig('Projection_Comparison_2.png')
 
 plt.show()
 
 plt.clf()
 
-plt.plot(k_size, results_diff, label = "GS - M1")
+plt.plot(k_size, results_diff, label = "GS/M1")
+
+plt.xlabel('Dimensionality k', fontsize = 10)
+
+plt.ylabel('Time ratio', fontsize = 10)
 
 plt.legend(loc="upper left")
+
+plt.savefig('time_diff_ratio.png')
 
 plt.show()
