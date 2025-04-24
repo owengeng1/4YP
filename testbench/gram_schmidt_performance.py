@@ -40,5 +40,3 @@ coeff = np.polyfit(k_size, results, 2)
 p = np.poly1d(coeff)
 plt.plot(k_size, p(k_size))
 plt.show()
-
-        

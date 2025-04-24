@@ -2,7 +2,6 @@ from vect_classes import Vector, World
 import numpy as np
 from math_operations import *
 import random
-import linalg
 
 random.seed(42)
 

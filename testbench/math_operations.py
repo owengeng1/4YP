@@ -52,3 +52,6 @@ def calc_orthog_basis(arr1, arr2): #Finds the projection of vector arr1 onto vec
     arr2mag = calculate_magnitude(arr2)
     scalar = np.dot(arr1, arr2)/(arr2mag*arr2mag)
     return np.subtract(arr1, np.multiply(scalar, arr2))
+
+def calc_l2_dist(v1, v2): #Finds the L2 distance between two points
+    return calculate_magnitude(np.subtract(v1, v2))

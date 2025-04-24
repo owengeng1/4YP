@@ -23,13 +23,14 @@ results_iter = []
 
 world = World(100)
 line1 = world.generate(1)
-line2 = world.generate(1)
+line2 = world.generate_angle(line1, 0.35)
 
-ansK1, ansK2, ctr = world.orthogonal_descent(line1, line2)
+ansK1, ansK2, ctr = world.orthogonal_descent_momentum(line1, line2, 0.4)
 
 print("Answers: ")
 print(ansK1)
 print(ansK2)
+print(ctr)
 print("============")
 
 '''

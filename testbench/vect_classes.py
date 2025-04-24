@@ -7,7 +7,7 @@ Contains the relevant object information used by the main testbench.
 import numpy as np
 import random
 from math_operations import *
-import linalg
+#import linalg
 
 
 
@@ -237,7 +237,326 @@ class World:
             if ctr % 100 == 0:
                 print(f"Current iteration: {ctr}")
 
+
         return K1, K2, ctr
+    
+    def orthogonal_descent_momentum(self, vect1, vect2, beta):
+
+        K1 = np.zeros(vect1.dim) #Memory allocation
+        K2 = np.zeros(vect2.dim)
+        K1prev = np.zeros(vect1.dim) #Memory allocation
+        K2prev = np.zeros(vect2.dim)
+
+        ctr = 1
+
+        start_pt = vect1.dirarr[0]
+        conv = False
+
+        #Initialise first iteration
+        K2 = self.calculate_orthogonal(start_pt, vect2)
+        start_pt = vect2.calculate_point(K2)
+        K1 = self.calculate_orthogonal(start_pt, vect1)
+        start_pt = vect1.calculate_point(K1)
+
+        K1prev = K1
+        K2prev = K2
+
+        mK1 = np.zeros(vect1.dim)
+        mK2 = np.zeros(vect2.dim)
+
+        while conv == False:
+            K2 = self.calculate_orthogonal(start_pt, vect2)
+            dK2 = np.subtract(K2, K2prev)
+            mK2 = beta*np.add(mK2, dK2)
+            K2 = np.add(K2, mK2)
+            start_pt = vect2.calculate_point(K2)
+            K1 = self.calculate_orthogonal(start_pt, vect1)
+            dK1 = np.subtract(K1, K1prev)
+            mK1 = beta*np.add(mK1, dK1)
+            K1 = np.add(K1, mK1)
+            start_pt = vect1.calculate_point(K1)
+
+            if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 1000:
+                if ctr != 0:
+                    conv = True
+                if ctr > 1000:
+                    print("Exceeded acceptable iterations.")
+                    return K1, K2, ctr
+                
+            
+            K1prev = K1
+            K2prev = K2
+            ctr = ctr+1
+
+            if ctr % 100 == 0:
+                print(f"Current iteration: {ctr}")
+
+
+        return K1, K2, ctr
+    
+    def orthogonal_descent_basis(self, vect1, vect2):
+
+        vect1 = self.gram_schmidt(vect1)
+        vect2 = self.gram_schmidt(vect2)
+
+        K1 = np.zeros(vect1.dim) #Memory allocation
+        K2 = np.zeros(vect2.dim)
+        K1prev = np.zeros(vect1.dim) #Memory allocation
+        K2prev = np.zeros(vect2.dim)
+
+        ctr = 0
+
+        start_pt = vect1.dirarr[0]
+        conv = False
+        while conv == False:
+            K2 = self.sum_linear_projections(start_pt, vect2)
+            start_pt = vect2.calculate_point(K2)
+            K1 = self.sum_linear_projections(start_pt, vect1)
+            start_pt = vect1.calculate_point(K1)
+
+            if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 10000:
+                if ctr != 0:
+                    conv = True
+                if ctr > 10000:
+                    print("Exceeded acceptable iterations.")
+                    return K1, K2, ctr
+            
+            K1prev = K1
+            K2prev = K2
+            ctr = ctr+1
+
+            if ctr % 100 == 0:
+                print(f"Current iteration: {ctr}")
+        
+        return K1, K2, ctr
+    
+    def orthogonal_descent_momentum_basis(self, vect1, vect2, beta):
+
+        K1 = np.zeros(vect1.dim) #Memory allocation
+        K2 = np.zeros(vect2.dim)
+        K1prev = np.zeros(vect1.dim) #Memory allocation
+        K2prev = np.zeros(vect2.dim)
+
+        ctr = 1
+
+        start_pt = vect1.dirarr[0]
+        conv = False
+
+        vect1 = self.gram_schmidt(vect1)
+        vect2 = self.gram_schmidt(vect2)
+
+        #Initialise first iteration
+        K2 = self.sum_linear_projections(start_pt, vect2)
+        start_pt = vect2.calculate_point(K2)
+        K1 = self.sum_linear_projections(start_pt, vect1)
+        start_pt = vect1.calculate_point(K1)
+
+        K1prev = K1
+        K2prev = K2
+
+        mK1 = np.zeros(vect1.dim)
+        mK2 = np.zeros(vect2.dim)
+
+        while conv == False:
+            K2 = self.sum_linear_projections(start_pt, vect2)
+            dK2 = np.subtract(K2, K2prev)
+            mK2 = beta*np.add(mK2, dK2)
+            K2 = np.add(K2, mK2)
+            start_pt = vect2.calculate_point(K2)
+            K1 = self.sum_linear_projections(start_pt, vect1)
+            dK1 = np.subtract(K1, K1prev)
+            mK1 = beta*np.add(mK1, dK1)
+            K1 = np.add(K1, mK1)
+            start_pt = vect1.calculate_point(K1)
+
+            if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 10000:
+                if ctr != 0:
+                    conv = True
+                if ctr > 10000:
+                    print("Exceeded acceptable iterations.")
+                    return K1, K2, ctr
+                
+            
+            K1prev = K1
+            K2prev = K2
+            ctr = ctr+1
+
+            if ctr % 100 == 0:
+                print(f"Current iteration: {ctr}")
+
+        return K1, K2, ctr
+    
+    def energy_descent(self, vect1, vect2):
+
+        K1 = np.zeros(vect1.dim) #Memory allocation
+        K2 = np.zeros(vect2.dim)
+        K1prev = np.zeros(vect1.dim) #Memory allocation
+        K2prev = np.zeros(vect2.dim)
+
+        ctr = 1
+
+        start_pt = vect1.dirarr[0]
+        conv = False
+
+        vect1 = self.gram_schmidt(vect1)
+        vect2 = self.gram_schmidt(vect2)
+
+        #Initialise first iteration
+        K2 = self.sum_linear_projections(start_pt, vect2)
+        start_pt = vect2.calculate_point(K2)
+        K1 = self.sum_linear_projections(start_pt, vect1)
+        start_pt = vect1.calculate_point(K1)
+
+        K1prev = K1
+        K2prev = K2
+
+        mK1 = np.zeros(vect1.dim)
+        mK2 = np.zeros(vect2.dim)
+
+        while conv == False:
+            K2 = self.sum_linear_projections(start_pt, vect2)
+            dK2 = np.subtract(K2, K2prev)
+            print(f"Here! {dK2}")
+            K2 = np.add(K2, mK2)
+            mK2Eprev = calculate_magnitude(mK2)
+            mK2 = np.add(mK2, dK2) #Problem here!!!!! Ordering - momentum is added first, where dK1 is calculated, and then K1 is changed based on this, meaning that K1 is always changed by double what it should be.
+            mK2Eaft = calculate_magnitude(mK2)
+            if mK2Eaft < mK2Eprev:
+                mK2 = np.zeros(vect2.dim)
+                print(f"mK2 energy before: {mK2Eprev}")
+                print(f"mK2 energy after:  {mK2Eaft}")
+                print(f"mK2: {mK2}")
+                print(f"dK2: {dK2}")
+                print(f"K2: {K2}")
+            else:
+                print(f"mK2 energy before: {mK2Eprev}")
+                print(f"mK2 energy after:  {mK2Eaft}")
+                print(f"mK2: {mK2}")
+                print(f"dK2: {dK2}")
+                print(f"K2: {K2}")
+
+            start_pt = vect1.calculate_point(K2)
+
+            K1 = self.sum_linear_projections(start_pt, vect1)
+            dK1 = np.subtract(K1, K1prev)
+            K1 = np.add(K1, mK1)
+            mK1Eprev = calculate_magnitude(mK1)
+            mK1 = np.add(mK1, dK1) #Problem here!!!!! Ordering - momentum is added first, where dK1 is calculated, and then K1 is changed based on this, meaning that K1 is always changed by double what it should be.
+            mK1Eaft = calculate_magnitude(mK1)
+            if mK1Eaft < mK1Eprev:
+                mK1 = np.zeros(vect1.dim)
+                print(f"mK1 energy before: {mK1Eprev}")
+                print(f"mK1 energy after:  {mK1Eaft}")
+                print(f"mK1: {mK1}")
+                print(f"dK1: {dK1}")
+                print(f"K1: {K1}")
+            else:
+                print(f"mK1 energy before: {mK1Eprev}")
+                print(f"mK1 energy after:  {mK1Eaft}")
+                print(f"mK1: {mK1}")
+                print(f"dK1: {dK1}")
+                print(f"K1: {K1}")
+                
+            
+            
+            start_pt = vect1.calculate_point(K1)
+
+            if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 10:
+                if ctr != 0:
+                    conv = True
+                if ctr > 10:
+                    print("Exceeded acceptable iterations.")
+                    return K1, K2, ctr
+                
+            
+            K1prev = K1
+            K2prev = K2
+            ctr = ctr+1
+
+            if ctr % 100 == 0:
+                print(f"Current iteration: {ctr}")
+
+        return K1, K2, ctr
+    
+    def energy_descent_2(self, vect1, vect2, beta_init, scale_factor):
+
+        K1 = np.zeros(vect1.dim) #Memory allocation
+        K2 = np.zeros(vect2.dim)
+        K1prev = np.zeros(vect1.dim) #Memory allocation
+        K2prev = np.zeros(vect2.dim)
+        mK1 = np.zeros(vect1.dim) #Memory allocation
+        mK2 = np.zeros(vect2.dim)
+
+        ctr = 1
+        beta = beta_init
+
+        start_pt = vect1.dirarr[0]
+        conv = False
+
+        #Orthogonalise basis
+        vect1 = self.gram_schmidt(vect1)
+        vect2 = self.gram_schmidt(vect2)
+
+        #Initialise first iteration
+        K2 = self.sum_linear_projections(start_pt, vect2)
+        start_pt = vect2.calculate_point(K2)
+        K1 = self.sum_linear_projections(start_pt, vect1)
+        start_pt = vect1.calculate_point(K1)
+
+        K1prev = K1
+        K2prev = K2
+
+        ploss = np.sum(np.subtract(vect1.calculate_point(K1), vect2.calculate_point(K2))**2)
+
+        while conv == False:
+            
+            K2 = self.sum_linear_projections(start_pt, vect2) #Calculate K2 from local point
+            dK2 = np.subtract(K2, K2prev) #Calculate organic change in dK2
+            K2 = np.add(K2, mK2) #Add momentum
+            mK2 = beta*np.add(mK2, dK2) #Update momentum
+            start_pt = vect2.calculate_point(K2) #Update starting point
+
+            K1 = self.sum_linear_projections(start_pt, vect1) #Calculate K1 from local point
+            dK1= np.subtract(K1, K1prev) #Calculate organic change in dK1
+            K1 = np.add(K1, mK1) #Add momentum
+            mK1 = beta*np.add(mK1, dK1) #Update momentum
+            start_pt = vect1.calculate_point(K1) #Update starting point
+
+            #Check for convergence
+            if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 10000:
+                if ctr != 0:
+                    conv = True
+                if ctr > 10000:
+                    print("Exceeded acceptable iterations.")
+                    return K1, K2, ctr
+
+            #One "iteration" to guage loss
+            tK2 = self.sum_linear_projections(start_pt, vect2)
+            start_pt = vect2.calculate_point(tK2)
+            tK1 = self.sum_linear_projections(start_pt, vect1)
+            start_pt = vect1.calculate_point(tK1)
+
+            nloss = np.sum(np.subtract(vect1.calculate_point(tK1), vect2.calculate_point(tK2))**2)
+
+            if nloss > ploss: #If new result is worse
+                mK1 = np.zeros(vect1.dim) #Reset momentum values to zero
+                mK2 = np.zeros(vect2.dim)
+                K1 = K1prev #Reset K1 and K2
+                K2 = K2prev
+                beta = beta * scale_factor #Exponentially decreases momentum hyperparameter as overshoot occurs
+
+            else: #If new result is better
+                K1prev = K1
+                K2prev = K2
+                ploss = nloss
+
+            if ctr % 100 == 0:
+                print(f"Current iteration: {ctr}")
+            
+            ctr = ctr + 1
+
+        return K1, K2, ctr
+
 
     def quadratic_solve(self, vect1, vect2):
         results = []
@@ -283,6 +602,50 @@ class World:
         
         return np.array(kvals)
 
+    def avg_projections(self, vectarr): #Takes an array of Vector objects, iterates to NPA between all vector spaces
+
+        #number of vectors
+        vectnum = np.size(vectarr)
+
+        #convergence bool
+        converged = False
+
+        for i in range(vectnum):
+            vectarr[i] = self.gram_schmidt(vectarr[i])
+
+        #Allocate list memory
+        karr = [None] * vectnum
+
+        
+        for i in range(vectnum):
+            karr[i] = np.zeros(vectarr[i].dim)
+
+        #initial point
+        pt = np.array([2, 72])
+
+        ctr = 0
+        
+        while converged == False:
+            tot = np.zeros(vectarr[0].dim)
+            current_mag = 0
+            for i in range(vectnum):
+                proj = vectarr[i].calculate_point(self.sum_linear_projections(pt, vectarr[i]))
+                tot = np.add(tot, proj)
+                current_mag = current_mag + calculate_magnitude(np.subtract(pt,proj))
+            print(current_mag)
+            tot = np.divide(tot, vectnum)
+
+            pt = tot
+
+            ctr = ctr + 1
+
+            if ctr == 100:
+                converged = True
+        
+        return pt
+
+
+            
 
 
 

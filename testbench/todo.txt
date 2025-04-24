@@ -1,0 +1,5 @@
+1. generate more complete results
+2. implement checkpointing
+3. figure out cuda so i can test with more impressive looking numbers
+4. cfs of multi-line problem ??
+5. report writeup
