@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.linalg import solve, block_diag
+import time
 
 def normalise(v):
     norm = np.linalg.norm(v)
@@ -55,3 +57,79 @@ def calc_orthog_basis(arr1, arr2): #Finds the projection of vector arr1 onto vec
 
 def calc_l2_dist(v1, v2): #Finds the L2 distance between two points
     return calculate_magnitude(np.subtract(v1, v2))
+
+
+def analytical_sol(vect1, vect2):
+    
+    dirarr1 = vect1.dirarr
+    dirarr2 = vect2.dirarr
+
+
+    w = dirarr1[0] - dirarr2[0]
+
+    U = np.delete(dirarr1, 0, axis=0)
+    V = np.delete(dirarr2, 0, axis=0)
+
+    U = U.T
+    V = V.T
+
+    mult_start = time.time()
+    UTU = U.T @ U
+    VTV = V.T @ V
+    UTV = U.T @ V
+    VTU = UTV.T  # V.T @ U
+    mult_time = time.time()-mult_start
+
+    rhs1 = -U.T @ w
+    rhs2 = V.T @ w
+
+    # Assemble the block system
+    top_block = np.hstack((UTU, -UTV))
+    bottom_block = np.hstack((-VTU, VTV))
+    system_matrix = np.vstack((top_block, bottom_block))
+    rhs = np.concatenate((rhs1, rhs2))
+
+    # Solve the linear system
+    sol_start = time.time()
+    sol = np.linalg.solve(system_matrix, rhs)  # symmetric system
+    sol_time = time.time()-sol_start
+    k1 = U.shape[1]
+    u = sol[:k1]
+    v = sol[k1:]
+
+    return u, v, mult_time, sol_time
+
+def modified_gram_schmidt(A):
+
+    n, k = A.shape
+    Q = np.zeros((n, k))
+    R = np.zeros((k, k))
+
+    for i in range(k):
+        v = A[:, i].copy()
+
+        for j in range(i):
+            R[j, i] = np.dot(Q[:, j], v)
+            v = v - R[j, i] * Q[:, j]
+
+        R[i, i] = np.linalg.norm(v)
+        Q[:, i] = v / R[i, i]
+
+    return Q, R
+
+def calc_principle_angles(vect1, vect2):
+
+    dirarr1 = vect1.dirarr
+    dirarr2 = vect2.dirarr
+
+    U = np.delete(dirarr1, 0, axis=0)
+    V = np.delete(dirarr2, 0, axis=0)
+
+    U = U.T
+    V = V.T
+
+    M = U.T @ V
+
+    _, s, _ = np.linalg.svd(M)
+    principal_angles = np.arccos(np.clip(s, -1.0, 1.0))
+    return principal_angles

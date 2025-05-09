@@ -7,6 +7,7 @@ Contains the relevant object information used by the main testbench.
 import numpy as np
 import random
 from math_operations import *
+import time
 #import linalg
 
 
@@ -180,6 +181,116 @@ class World:
         return(K1, K2, iteration_counter)
     
 
+    def hill_climbing(self, vect1, vect2, probe):
+        #Initialise variables
+        K1 = np.zeros(vect1.dim) #Initial guess - everything is 0 along all constants
+        K2 = np.zeros(vect2.dim)
+        K1update = np.zeros(vect1.dim) #Initial guess - everything is 0 along all constants
+        K2update = np.zeros(vect2.dim)
+
+
+        converged = False #While check
+        iteration_counter = 0
+
+        while converged == False:
+            current_L2 = self.calc_l2(vect1.calculate_point(K1), vect2.calculate_point(K2))
+            i1update = 0
+            i2update = 0
+            dir = 0
+            for i1 in range(np.size(K1)):
+
+                for i2 in range(np.size(K2)):
+
+                    probed_dist = self.calc_l2(vect1.calculate_point_probe(K1, i1, probe), vect2.calculate_point_probe(K2, i2, probe))
+                    print("1:")
+                    print(probed_dist)
+                    if probed_dist < current_L2:
+                        current_L2 = probed_dist
+                        i1update = i1
+                        i2update = i2
+                        dir = 1
+        
+                    probed_dist = self.calc_l2(vect1.calculate_point_probe(K1, i1, probe), vect2.calculate_point_probe(K2, i2, -1*probe))
+                    print("2:")
+                    print(probed_dist)
+                    if probed_dist < current_L2:
+                        current_L2 = probed_dist
+                        i1update = i1
+                        i2update = i2
+                        dir = 2
+                    
+                    probed_dist = self.calc_l2(vect1.calculate_point_probe(K1, i1, -1*probe), vect2.calculate_point_probe(K2, i2, probe))
+                    print("3:")
+                    print(probed_dist)
+                    if probed_dist < current_L2:
+                        current_L2 = probed_dist
+                        i1update = i1
+                        i2update = i2
+                        dir = 3
+
+                    probed_dist = self.calc_l2(vect1.calculate_point_probe(K1, i1, -1*probe), vect2.calculate_point_probe(K2, i2, -1*probe))
+                    print("4:")
+                    print(probed_dist)
+                    if probed_dist < current_L2:
+                        current_L2 = probed_dist
+                        i1update = i1
+                        i2update = i2
+                        dir = 4
+                    
+
+            
+            if dir == 0:
+                converged = True
+            
+            elif dir == 1:
+                K1[i1update] = K1[i1update] + probe
+                K2[i2update] = K2[i2update] + probe
+            
+            elif dir == 2:
+                K1[i1update] = K1[i1update] + probe
+                K2[i2update] = K2[i2update] - probe
+            
+            elif dir == 3:
+                K1[i1update] = K1[i1update] - probe
+                K2[i2update] = K2[i2update] + probe
+            
+            elif dir == 4:
+                K1[i1update] = K1[i1update] - probe
+                K2[i2update] = K2[i2update] - probe
+
+
+            
+
+            iteration_counter = iteration_counter + 1
+
+            print("========")
+            print(K1)
+            print(K2)
+            print(dir)
+            print("========")
+
+        
+        return K1, K2, iteration_counter
+
+    def hill_climb_projection(self, vect1, vect2, probe):
+        vect2 = self.gram_schmidt(vect2)
+
+        K1 = np.zeros(vect1.dim) #Initial guess - everything is 0 along all constants
+        K2 = np.zeros(vect2.dim)
+        converged = False
+        
+
+        while converged == False:
+            current_L2 = self.calc_l2(vect1.calculate_point(K1), vect2.calculate_point(K2))
+
+            for i in range(np.size(K1)):
+
+                probed_dist = self.calc_l2(vect1.calculate_point_probe(K1, i, probe))
+                
+                
+
+    
+
     def calculate_orthogonal(self, pt, vect):
         assert isinstance(pt, np.ndarray), "Point must be in form of a numpy array."
         assert isinstance(vect, Vector), "Vector must be in form of a Vector object."
@@ -296,8 +407,14 @@ class World:
     
     def orthogonal_descent_basis(self, vect1, vect2):
 
+        start = time.time()
+
         vect1 = self.gram_schmidt(vect1)
         vect2 = self.gram_schmidt(vect2)
+
+        end = time.time()
+        gs_time = end-start
+
 
         K1 = np.zeros(vect1.dim) #Memory allocation
         K2 = np.zeros(vect2.dim)
@@ -308,6 +425,8 @@ class World:
 
         start_pt = vect1.dirarr[0]
         conv = False
+
+        proj_start = time.time()
         while conv == False:
             K2 = self.sum_linear_projections(start_pt, vect2)
             start_pt = vect2.calculate_point(K2)
@@ -328,7 +447,10 @@ class World:
             if ctr % 100 == 0:
                 print(f"Current iteration: {ctr}")
         
-        return K1, K2, ctr
+        proj_end = time.time()
+        proj_time = proj_end-proj_start
+        
+        return K1, K2, ctr, gs_time, proj_time
     
     def orthogonal_descent_momentum_basis(self, vect1, vect2, beta):
 
@@ -342,8 +464,13 @@ class World:
         start_pt = vect1.dirarr[0]
         conv = False
 
+        gs_start = time.time()
+
         vect1 = self.gram_schmidt(vect1)
         vect2 = self.gram_schmidt(vect2)
+
+        gs_end = time.time()
+        gs_time = gs_end - gs_start
 
         #Initialise first iteration
         K2 = self.sum_linear_projections(start_pt, vect2)
@@ -356,6 +483,8 @@ class World:
 
         mK1 = np.zeros(vect1.dim)
         mK2 = np.zeros(vect2.dim)
+
+        proj_start = time.time()
 
         while conv == False:
             K2 = self.sum_linear_projections(start_pt, vect2)
@@ -383,8 +512,12 @@ class World:
 
             if ctr % 100 == 0:
                 print(f"Current iteration: {ctr}")
+        
+        proj_end = time.time()
 
-        return K1, K2, ctr
+        proj_time = proj_end-proj_start
+
+        return K1, K2, ctr, gs_time, proj_time
     
     def energy_descent(self, vect1, vect2):
 
@@ -643,9 +776,203 @@ class World:
                 converged = True
         
         return pt
+    
+
+    def regenerate_angle(self, vect1, vect2, angle):
+
+        dirarr1 = vect1.dirarr
+        dirarr2 = vect2.dirarr
+
+        U = np.delete(dirarr1, 0, axis=0)
+        V = np.delete(dirarr2, 0, axis=0)
+
+        U = U.T
+        V = V.T
+
+        M = U.T @ V
+
+        Usvd, s, Vsvd = np.linalg.svd(M)
+
+        S_new = np.zeros_like(s)
+        for i in range(vect2.dim):
+            S_new[i] = np.cos(angle)
+        
+        S_new = np.diag(S_new)
+
+        
+
+        for i in range(vect1.dim-vect2.dim):
+            test = np.zeros(vect2.dim)
+            S_new = np.vstack([S_new, test])
+
+   
+        M_new = Usvd @ S_new @ Vsvd
+
+        _, test, _ = np.linalg.svd(M_new)
 
 
+        V_new = np.linalg.pinv(U.T) @ M_new
+
+        U = U.T
+        V = V_new.T
+
+        new_dirarr1 = np.vstack([vect1.dirarr[0], U])
+        new_dirarr2 = np.vstack([vect2.dirarr[0], V])
+
+        newvect1 = vect1
+        newvect1.dirarr = new_dirarr1
+        newvect2 = vect2
+        newvect2.dirarr = new_dirarr2
+
+        return newvect1, newvect2
+    
+    def orthogonal_descent_momentum_basis_adaptive(self, vect1, vect2, beta_init):
+
+        K1 = np.zeros(vect1.dim) #Memory allocation
+        K2 = np.zeros(vect2.dim)
+        K1prev = np.zeros(vect1.dim) #Memory allocation
+        K2prev = np.zeros(vect2.dim)
+
+        ctr = 1
+
+        start_pt = vect1.dirarr[0]
+        conv = False
+
+        start = time.time()
+
+        vect1 = self.gram_schmidt(vect1)
+        vect2 = self.gram_schmidt(vect2)
+
+        end = time.time()
+        gs_time = end-start
+
+
+        #Initialise first iteration
+        K2 = self.sum_linear_projections(start_pt, vect2)
+        p2 = vect2.calculate_point(K2)
+        K1 = self.sum_linear_projections(p2, vect1)
+        p1 = vect1.calculate_point(K1)
+
+        start_pt = p1
+
+        K1prev = K1
+        K2prev = K2
+
+        mK1 = np.zeros(vect1.dim)
+        mK2 = np.zeros(vect2.dim)
+
+        beta = beta_init
+        cost = calc_l2_dist(p2, p1)
+
+        proj_start = time.time()
+
+        while conv == False:
+            K2 = self.sum_linear_projections(start_pt, vect2)
+            dK2 = np.subtract(K2, K2prev)
+            mK2 = beta*np.add(mK2, dK2)
+            K2 = np.add(K2, mK2)
+            p2 = vect2.calculate_point(K2)
+            K1 = self.sum_linear_projections(p2, vect1)
+            dK1 = np.subtract(K1, K1prev)
+            mK1 = beta*np.add(mK1, dK1)
+            K1 = np.add(K1, mK1)
+            p1 = vect1.calculate_point(K1)
+            start_pt = p1
+
+            if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 10000:
+                if ctr != 0:
+                    conv = True
+                if ctr > 10000:
+                    print("Exceeded acceptable iterations.")
+                    return K1, K2, ctr
             
+            #Calculate new cost function
+            new_cost = calc_l2_dist(p2, p1)
+
+            #If new cost function is worse
+            if new_cost > cost:
+                mK1 = 0
+                mK2 = 0
+                K1 = K1prev
+                K2 = K2prev
+                beta = beta * 0.5 #Exponentially reduce hyperparameter
+                
+            else:
+                K1prev = K1
+                K2prev = K2
+                cost = new_cost
+
+
+            ctr = ctr+1
+
+            if ctr % 100 == 0:
+                print(f"Current iteration: {ctr}")
+        
+        proj_end = time.time()
+        proj_time = proj_end-proj_start
+
+        return K1, K2, ctr, gs_time, proj_time
+
+
+    def step_descent_greedy(self, vect1, vect2):
+        #Initialise variables
+        K1 = np.zeros(vect1.dim) #Initial guess - everything is 0 along all constants
+        K2 = np.zeros(vect2.dim)
+        converged = False #While check
+        iteration_counter = 0
+        while converged == False:
+            dist_minimum = self.calc_l2(vect1.calculate_point(K1), vect2.calculate_point(K2))
+            moved = False
+            for i1, k1n in enumerate(K1):
+                K1temp = np.copy(K1) #Find the probing points
+                K1temp[i1] = k1n + 0.1
+                p11 = vect1.calculate_point(K1temp)
+                K1temp[i1] = k1n - 0.1
+                p12 = vect1.calculate_point(K1temp)
+
+                for i2, k2n in enumerate(K2):
+                    K2temp = np.copy(K2) #Find the probing points
+                    K2temp[i2] = k2n + 0.1
+                    p21 = vect2.calculate_point(K2temp)
+                    K2temp[i2] = k2n -0.1
+                    p22 = vect2.calculate_point(K2temp)
+
+                    #Compare probed points
+                    all_dist = np.array([self.calc_l2(p11, p21), self.calc_l2(p11,p22), self.calc_l2(p12, p21), self.calc_l2(p12, p22), dist_minimum])
+                    result = np.argmin(all_dist)
+                    if result == 0:
+                        K1[i1] = k1n + 0.1 #Can maybe update this here to give better guesses.
+                        K2[i2] = k2n + 0.1
+                        dist_minimum = all_dist[result]
+                        moved = True
+                    elif result == 1:
+                        K1[i1] = k1n + 0.1
+                        K2[i2] = k2n - 0.1
+                        dist_minimum = all_dist[result]
+                        moved = True
+                    elif result == 2:
+                        K1[i1] = k1n - 0.1
+                        K2[i2] = k2n + 0.1
+                        dist_minimum = all_dist[result]
+                        moved = True
+                    elif result == 3:
+                        K1[i1] = k1n - 0.1
+                        K2[i2] = k2n - 0.1
+                        dist_minimum = all_dist[result]
+                        moved = True
+            
+            if (moved == False):
+                converged = True
+
+            iteration_counter = iteration_counter + 1
+        
+        #print("Final K1 and K2: ")
+        #print("K1:")
+        #print(K1)
+        #print("K2:")
+        #print(K2)
+        return(K1, K2, iteration_counter)
+    
 
 
 
@@ -661,6 +988,15 @@ class Vector:
         assert isinstance(constarr, np.ndarray), "constarr must be a numpy array."
         assert np.size(constarr) == self.dim, f"Inputted constant array doesn't match vector dimensionality, expected dimensionality {self.dim}, inputted constarr has {np.size(constarr)} elements."
         point = self.dirarr[0]
+        for ind in range(0, self.dim):
+            point = np.add(point, constarr[ind]*self.dirarr[ind+1])
+        return point
+    
+    def calculate_point_probe(self, constarr, probeind, probe):
+        assert isinstance(constarr, np.ndarray), "constarr must be a numpy array."
+        assert np.size(constarr) == self.dim, f"Inputted constant array doesn't match vector dimensionality, expected dimensionality {self.dim}, inputted constarr has {np.size(constarr)} elements."
+        point = self.dirarr[0]
+        constarr[probeind] = constarr[probeind] + probe
         for ind in range(0, self.dim):
             point = np.add(point, constarr[ind]*self.dirarr[ind+1])
         return point

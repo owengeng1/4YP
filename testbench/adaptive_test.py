@@ -33,13 +33,13 @@ for ind in range(kmin, kmax, step_size):
         vect2 = world.generate(ind)
         
         #start = time.time()
-        _1, _2, ctr = world.orthogonal_descent_basis(vect1, vect2)
+        _1, _2, ctr = world.orthogonal_descent_momentum_basis(vect1, vect2, 0.5)
         #end = time.time()
 
         tot_def = tot_def + ctr
 
         #start = time.time()
-        _1, _2, ctr = world.orthogonal_descent_momentum_basis(vect1, vect2, 0.3)
+        _1, _2, ctr = world.orthogonal_descent_momentum_basis_adaptive(vect1, vect2, 1.5)
         #end = time.time()
 
         tot_mom = tot_mom + ctr
@@ -52,8 +52,8 @@ for ind in range(kmin, kmax, step_size):
 
 
 
-plt.plot(x, results_default, label = "Without momentum")
-plt.plot(x, results_momentum, label = "With momentum, beta = 0.5")
+plt.plot(x, results_default, label = "With momentum, beta = 0.5")
+plt.plot(x, results_momentum, label = "With adaptive momentum, beta_init = 1.5")
 
 plt.xlabel('Dimensionality k', fontsize = 18)
 
