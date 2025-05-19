@@ -10,6 +10,18 @@ from math_operations import *
 import time
 #import linalg
 
+def formulate_gs_mat(A):
+
+    k, n = np.shape(A)
+    start = time.time()
+    for i in range(k):
+        for j in range(i+1, k):
+            proj = (A[j]@A[i])*A[i]
+            A[j] = np.subtract(A[j], proj)
+            A[j] = normalise(A[j])
+    end = time.time()
+    return A, end-start
+
 
 
 class World:
@@ -415,6 +427,11 @@ class World:
         end = time.time()
         gs_time = end-start
 
+        A1 = np.delete(vect1.dirarr, 0, axis=0)
+        A2 = np.delete(vect2.dirarr, 0, axis=0)
+
+        A1 = A1.T
+        A2 = A2.T
 
         K1 = np.zeros(vect1.dim) #Memory allocation
         K2 = np.zeros(vect2.dim)
@@ -428,9 +445,9 @@ class World:
 
         proj_start = time.time()
         while conv == False:
-            K2 = self.sum_linear_projections(start_pt, vect2)
+            K2 = (np.subtract(start_pt, vect2.dirarr[0]).T)@A2
             start_pt = vect2.calculate_point(K2)
-            K1 = self.sum_linear_projections(start_pt, vect1)
+            K1 = (np.subtract(start_pt, vect1.dirarr[0]).T)@A1
             start_pt = vect1.calculate_point(K1)
 
             if (rms_diff_norm(K1, K1prev) < 0.01 and rms_diff_norm(K2, K2prev) < 0.01) or ctr > 10000:
@@ -503,7 +520,7 @@ class World:
                     conv = True
                 if ctr > 10000:
                     print("Exceeded acceptable iterations.")
-                    return K1, K2, ctr
+                    return K1, K2, ctr, 0, 0
                 
             
             K1prev = K1

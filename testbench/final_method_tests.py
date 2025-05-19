@@ -9,11 +9,11 @@ from math_operations import *
 from matplotlib import cm
 
 
-world = World(5000)
+world = World(1000)
 
 kmin = 1
-kmax = 1000
-stepsize = 20
+kmax = 40
+stepsize = 1
 repeats = 20
 
 results_orthog = []

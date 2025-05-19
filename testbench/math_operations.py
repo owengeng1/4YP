@@ -73,9 +73,10 @@ def analytical_sol(vect1, vect2):
     U = U.T
     V = V.T
 
-    mult_start = time.time()
+    
     UTU = U.T @ U
     VTV = V.T @ V
+    mult_start = time.time()
     UTV = U.T @ V
     VTU = UTV.T  # V.T @ U
     mult_time = time.time()-mult_start
@@ -92,6 +93,47 @@ def analytical_sol(vect1, vect2):
     # Solve the linear system
     sol_start = time.time()
     sol = np.linalg.solve(system_matrix, rhs)  # symmetric system
+    sol_time = time.time()-sol_start
+    k1 = U.shape[1]
+    u = sol[:k1]
+    v = sol[k1:]
+
+    return u, v, mult_time, sol_time
+
+def analytical_sol_lstsq(vect1, vect2):
+    
+    dirarr1 = vect1.dirarr
+    dirarr2 = vect2.dirarr
+
+
+    w = dirarr1[0] - dirarr2[0]
+
+    U = np.delete(dirarr1, 0, axis=0)
+    V = np.delete(dirarr2, 0, axis=0)
+
+    U = U.T
+    V = V.T
+
+    
+    UTU = U.T @ U
+    VTV = V.T @ V
+    mult_start = time.time()
+    UTV = U.T @ V
+    VTU = UTV.T  # V.T @ U
+    mult_time = time.time()-mult_start
+
+    rhs1 = -U.T @ w
+    rhs2 = V.T @ w
+
+    # Assemble the block system
+    top_block = np.hstack((UTU, -UTV))
+    bottom_block = np.hstack((-VTU, VTV))
+    system_matrix = np.vstack((top_block, bottom_block))
+    rhs = np.concatenate((rhs1, rhs2))
+
+    # Solve the linear system
+    sol_start = time.time()
+    sol, _, _, _ = np.linalg.lstsq(system_matrix, rhs, rcond=0)  # symmetric system
     sol_time = time.time()-sol_start
     k1 = U.shape[1]
     u = sol[:k1]

@@ -43,7 +43,7 @@ for ind in range(kmin, kmax, step_size):
         #start = time.time()
 
         ctr_arr = []
-        for beta in range(0, 5):
+        for beta in range(0, 8):
             beta = beta/10
             _1, _2, ctr = world.orthogonal_descent_momentum(vect1, vect2, beta)
             if ctr == 801:
@@ -67,9 +67,9 @@ print(results_momentum)
 
 lines = plt.plot(x, results_momentum)
 
-plt.xlabel('Dimensionality k', fontsize = 10)
-plt.ylabel('Iterations', fontsize = 10)
-plt.legend(lines, (r'$ \beta $ = 0', r'$ \beta $ = 0.1', r'$ \beta $ = 0.2', r'$ \beta $ = 0.3', r'$ \beta $ = 0.4'), loc="upper left")
+plt.xlabel('Dimensionality k', fontsize = 18)
+plt.ylabel('Iterations', fontsize = 18)
+plt.legend(lines, (r'$ \beta $ = 0', r'$ \beta $ = 0.1', r'$ \beta $ = 0.2', r'$ \beta $ = 0.3', r'$ \beta $ = 0.4', r'$ \beta $ = 0.5', r'$ \beta $ = 0.6', r'$ \beta $ = 0.7'), loc="upper left", fontsize=15)
 plt.show()
 plt.clf()
 

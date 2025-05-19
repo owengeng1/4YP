@@ -20,11 +20,11 @@ results_iter = []
 #param
 nmin = 500
 nmax = 1000
-kmin = 150
-kmax = 300
+kmin = 1
+kmax = 150
 repeats = 5
 
-"""
+
 #GENERATION
 
 for n in range(nmin, nmax, 20):
@@ -39,9 +39,9 @@ for n in range(nmin, nmax, 20):
         for rep in range(repeats):
             line1 = world.generate(k)
             line2 = world.generate(k)
-            a, b, it = world.orthogonal_descent_basis(line1, line2)
+            a, b, it, _, _ = world.orthogonal_descent_basis(line1, line2)
             theta = calc_principle_angles(line1, line2)
-            theta = np.max(theta)
+            theta = np.mean(theta)
             if (pow(np.sin(theta),2) < 0.001):
                 correction = 10000
             else:
@@ -88,11 +88,11 @@ ax.set_ylabel("n")
 ax.set_zlabel("Iterations")
 
 plt.show()
-"""
+
 
 #GENERATION
 
-
+"""
 world = World(1000)
 
 for k in range(kmin, kmax):
@@ -102,9 +102,9 @@ for k in range(kmin, kmax):
     for rep in range(repeats):
         line1 = world.generate(k)
         line2 = world.generate(k)
-        a, b, it = world.orthogonal_descent_basis(line1, line2)
+        a, b, it, _, _ = world.orthogonal_descent_basis(line1, line2)
         theta = calc_principle_angles(line1, line2)
-        theta = np.max(theta)
+        theta = np.mean(theta)
         if (pow(np.sin(theta),2) < 0.001):
             correction = 1000
         else:
@@ -142,3 +142,5 @@ plt.yticks(fontsize=15)
 
 plt.plot(logkrange, logresults)
 plt.show()
+
+"""

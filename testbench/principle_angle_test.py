@@ -29,7 +29,7 @@ for n in range(nmin, nmax):
         for rep in range(repeats):
             vect1 = world.generate(k)
             vect2 = world.generate(k)
-            tot = tot + np.max(calc_principle_angles(vect1, vect2))/repeats
+            tot = tot + np.mean(calc_principle_angles(vect1, vect2))/repeats
         temp.append(tot)
     
     for k in range(np.min([kmax, n]), kmax):
@@ -70,7 +70,7 @@ ax.invert_yaxis()
 
 ax.set_xlabel("k")
 ax.set_ylabel("n")
-ax.set_zlabel("Iterations")
+ax.set_zlabel("Angle, radians")
 
 plt.show()
 

@@ -9,7 +9,18 @@ from math_operations import *
 
 random.seed(43)
 
-"""
+def formulate_gs_mat(A):
+
+    k, _ = np.shape(A)
+    start = time.time()
+    for i in range(k):
+        for j in range(i+1, k):
+            proj = (A[j]@A[i])*A[i]
+            A[j] = np.subtract(A[j], proj)
+            A[j] = normalise(A[j])
+    end = time.time()
+    return A, end-start
+
 repeats = 10
 highest_dim = 500
 stepsize = 50
@@ -26,10 +37,11 @@ for iter in range(3, highest_dim, stepsize):
 
         world = World(10000)
         vect = world.generate(iter)
-        start = time.time()
-        world.gram_schmidt(vect)
-        end = time.time()
-        current_result = current_result + end-start
+        A = np.delete(vect.dirarr, 0, axis=0)
+        #start = time.time()
+        _, t = formulate_gs_mat(A)
+        #end = time.time()
+        current_result = current_result + t
     
     current_result = current_result/repeats
     results.append(current_result)
@@ -50,8 +62,8 @@ plt.show()
 
 print(p)
 
-"""
 
+"""
 
 repeats = 20
 highest_dim = 5000
@@ -86,3 +98,5 @@ plt.ylabel("Time (s)", fontsize = 18)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.show()
+
+"""
